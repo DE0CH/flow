@@ -15,6 +15,7 @@ import {
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
 import { useRecoilState } from 'recoil'
 
+import { signInWithGoogle, signOut } from '../firebase'
 import {
   Env,
   Action,
@@ -26,7 +27,6 @@ import {
   useSetAction,
   useTranslation,
 } from '../hooks'
-import { signInWithGoogle, signOut } from '../firebase'
 import { reader, useReaderSnapshot } from '../models'
 import { navbarState } from '../state'
 import { activeClass } from '../styles'

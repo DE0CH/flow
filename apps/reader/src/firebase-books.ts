@@ -7,6 +7,7 @@ import {
   setDoc,
   updateDoc,
   type Unsubscribe,
+  type UpdateData,
 } from 'firebase/firestore'
 import { getBlob, getDownloadURL, uploadBytes } from 'firebase/storage'
 
@@ -77,16 +78,17 @@ export async function updateBook(
     id: undefined,
   } as Record<string, unknown>)
   if (Object.keys(data).length === 0) return
-  await updateDoc(ref, data)
+  await updateDoc(ref, data as UpdateData<Record<string, unknown>>)
 }
 
 export async function deleteBooks(
   uid: string,
   bookIds: string[],
 ): Promise<void> {
-  if (!firestore) return
+  const db = firestore
+  if (!db) return
   await Promise.all(
-    bookIds.map((id) => deleteDoc(doc(firestore, 'users', uid, 'books', id))),
+    bookIds.map((id) => deleteDoc(doc(db, 'users', uid, 'books', id))),
   )
   if (!storage) return
   const { deleteObject } = await import('firebase/storage')

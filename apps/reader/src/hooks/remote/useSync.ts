@@ -4,6 +4,7 @@ import { useSnapshot } from 'valtio'
 import { Annotation } from '@flow/reader/annotation'
 import { BookRecord } from '@flow/reader/db'
 import { BookTab } from '@flow/reader/models'
+
 import { updateBook } from '../../firebase-books'
 import { useAuth } from '../useAuth'
 

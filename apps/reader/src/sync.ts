@@ -2,6 +2,7 @@ import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
 import { BookRecord } from './db'
+import { getUid } from './firebase'
 import {
   getBooks,
   getFile,
@@ -10,8 +11,6 @@ import {
   uploadCover,
   uploadFile,
 } from './firebase-books'
-import { getUid } from './firebase'
-import { readBlob } from './file'
 
 export const DATA_FILENAME = 'data.json'
 

@@ -17,8 +17,8 @@ import { useSnapshot } from 'valtio'
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 import { navbarState } from '@flow/reader/state'
 
-import { getBook } from '../firebase-books'
 import { handleFiles } from '../file'
+import { getBook } from '../firebase-books'
 import {
   hasSelection,
   useAuth,

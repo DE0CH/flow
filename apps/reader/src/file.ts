@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import ePub, { Book } from '@flow/epubjs'
 
 import { BookRecord } from './db'
+import { getUid } from './firebase'
 import {
   getBooks,
   getFile,
@@ -11,7 +12,6 @@ import {
   uploadCover,
   uploadFile,
 } from './firebase-books'
-import { getUid } from './firebase'
 import { mapExtToMimes } from './mime'
 import { unpack } from './sync'
 

@@ -14,6 +14,7 @@ import { useSet } from 'react-use'
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import { BookRecord } from '../db'
 import { fetchBook, handleFiles } from '../file'
+import { signInWithGoogle } from '../firebase'
 import { deleteBooks } from '../firebase-books'
 import {
   useAuth,
@@ -24,7 +25,6 @@ import {
 } from '../hooks'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
-import { signInWithGoogle } from '../firebase'
 import { pack } from '../sync'
 import { copy } from '../utils'
 
@@ -130,9 +130,6 @@ const Library: React.FC = () => {
     )
   }
 
-  const selectedBooks = [...selectedBookIds].map(
-    (id) => books.find((b) => b.id === id)!,
-  )
   const allSelected = selectedBookIds.size === books.length
 
   return (

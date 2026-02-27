@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 
+import { signInWithGoogle, signOut } from '@flow/reader/firebase'
 import {
   ColorScheme,
   useAuth,
@@ -7,7 +8,6 @@ import {
   useTranslation,
 } from '@flow/reader/hooks'
 import { useSettings } from '@flow/reader/state'
-import { signInWithGoogle, signOut } from '@flow/reader/firebase'
 
 import { Button } from '../Button'
 import { Checkbox, Select } from '../Form'
