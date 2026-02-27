@@ -40,3 +40,4 @@ yarn-error.log*
 **/public/fallback-*
 
 .pnpm-store
+.vercel

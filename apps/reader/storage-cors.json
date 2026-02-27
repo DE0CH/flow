@@ -4,7 +4,8 @@
       "http://localhost:7127",
       "http://127.0.0.1:7127",
       "https://flow-epub.web.app",
-      "https://flow-epub.firebaseapp.com"
+      "https://flow-epub.firebaseapp.com",
+      "https://flow-de0ch.vercel.app"
     ],
     "method": ["GET", "HEAD", "PUT", "POST", "OPTIONS"],
     "responseHeader": ["Content-Type", "Content-Length", "Content-Range"],
