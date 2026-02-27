@@ -8,6 +8,12 @@
 - Root configs (`tsconfig*.json`, `turbo.json`, `prettier.config.js`) and Docker tooling govern all workspaces.
 - App assets and translations live in their respective `public/` directories; copy `.env.local.example` to `.env.local` per app for secrets.
 
+## Firebase (reader)
+
+- **Storage CORS**: Browser fetches to Firebase Storage from `localhost` require CORS on the bucket. From the repo root, with [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) installed and `gcloud auth login` done, run:
+  `gsutil cors set apps/reader/storage-cors.json gs://YOUR_STORAGE_BUCKET`
+  (use the value of `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, e.g. `flow-epub.firebasestorage.app`). Apply after creating the bucket or when adding new origins.
+
 ## Build, Test, and Development Commands
 
 - `pnpm install` — bootstrap dependencies; rerun after updating workspace packages.

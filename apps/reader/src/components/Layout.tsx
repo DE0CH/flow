@@ -4,6 +4,7 @@ import { ComponentProps, useEffect, useState } from 'react'
 import { useMemo } from 'react'
 import { IconType } from 'react-icons'
 import {
+  MdAccountCircle,
   MdFormatUnderlined,
   MdOutlineImage,
   MdSearch,
@@ -61,7 +62,6 @@ export const Layout: React.FC = ({ children }) => {
         {ready && <SideBar />}
         {ready && <Reader>{children}</Reader>}
       </SplitView>
-      <AuthButton />
     </div>
   )
 }
@@ -173,12 +173,14 @@ function ViewActionBar({ className, env }: EnvActionBarProps) {
 
 function PageActionBar({ env }: EnvActionBarProps) {
   const mobile = useMobile()
+  const { user, loading } = useAuth()
   const [action, setAction] = useState('Home')
   const t = useTranslation()
 
   interface IPageAction extends IAction {
     Component?: React.FC
     disabled?: boolean
+    isAuth?: boolean
   }
 
   const pageActions: IPageAction[] = useMemo(
@@ -190,6 +192,13 @@ function PageActionBar({ env }: EnvActionBarProps) {
         env: Env.Mobile,
       },
       {
+        name: 'auth',
+        title: user ? 'Sign out' : 'Sign in',
+        Icon: MdAccountCircle,
+        env: Env.Desktop | Env.Mobile,
+        isAuth: true,
+      },
+      {
         name: 'settings',
         title: 'settings',
         Icon: RiSettings5Line,
@@ -197,20 +206,24 @@ function PageActionBar({ env }: EnvActionBarProps) {
         env: Env.Desktop | Env.Mobile,
       },
     ],
-    [],
+    [user],
   )
 
   return (
     <ActionBar>
       {pageActions
         .filter((a) => a.env & env)
-        .map(({ name, title, Icon, Component, disabled }, i) => (
+        .map(({ name, title, Icon, Component, disabled, isAuth }, i) => (
           <Action
-            title={t(`${title}.title`)}
+            title={loading && isAuth ? '…' : (isAuth ? (user ? user.email ?? 'Sign out' : 'Sign in') : t(`${title}.title`))}
             Icon={Icon}
             active={mobile ? action === name : undefined}
-            disabled={disabled}
+            disabled={disabled || (isAuth && loading)}
             onClick={() => {
+              if (isAuth) {
+                user ? signOut() : signInWithGoogle().catch(console.error)
+                return
+              }
               Component ? reader.addTab(Component) : reader.clear()
               setAction(name)
             }}
@@ -218,35 +231,6 @@ function PageActionBar({ env }: EnvActionBarProps) {
           />
         ))}
     </ActionBar>
-  )
-}
-
-function AuthButton() {
-  const { user, loading } = useAuth()
-
-  if (loading) return null
-
-  return (
-    <div className="fixed bottom-16 left-4 z-20 sm:bottom-4">
-      {user ? (
-        <button
-          type="button"
-          onClick={() => signOut()}
-          className="rounded bg-surface-variant px-3 py-2 text-on-surface-variant typescale-body-small shadow hover:bg-surface-variant/80"
-          title={user.email ?? user.uid}
-        >
-          Sign out {user.email ? `(${user.email})` : ''}
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => signInWithGoogle().catch(console.error)}
-          className="rounded bg-primary px-3 py-2 text-on-primary typescale-body-small shadow hover:bg-primary/90"
-        >
-          Sign in
-        </button>
-      )}
-      </div>
   )
 }
 

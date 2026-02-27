@@ -38,3 +38,5 @@ yarn-error.log*
 **/public/workbox-*
 **/public/sw.*
 **/public/fallback-*
+
+.pnpm-store
