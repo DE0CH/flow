@@ -4,6 +4,8 @@
 
 <p align="center">Free. Open source. Browser-based.</p>
 
+<p align="center">This is a fork of the <a href="https://github.com/pacexy/flow">upstream Flow</a> that uses Firebase for syncing across devices. It makes a certain kind of self-hosting easier: instead of renting a VPS, you can run it on serverless or platform-as-a-service (PaaS) offerings that often have free tiers, which can be cheaper than a paid VPS.</p>
+
 <p align="center"><img src="apps/website/public/screenshots/01.webp"/>
 
 </p>
@@ -42,33 +44,22 @@ git clone https://github.com/pacexy/flow
 pnpm i
 ```
 
+### Firebase (required)
+
+Flow requires [Firebase](https://console.firebase.google.com) for authentication, data, and cloud storage. Self-hosting without Firebase is not supported.
+
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com).
+2. Enable **Authentication** (e.g. Google sign-in), **Firestore**, and **Storage**.
+3. Copy the project’s config into your env (see below).
+
 ### Setup the environment variables
 
-Copy and rename all `.env.local.example`s to `.env.local` and setup the environment variables.
+Copy each app’s `.env.local.example` to `.env.local` and fill in the values. For the reader app you must set the Firebase variables from your Firebase project config.
 
 ### Run the apps
 
 ```bash
 pnpm dev
-```
-
-## Self-hosting
-
-Before self-hosting, you should [setup the environment variables](#setup-the-environment-variables).
-
-### Docker
-
-You can use docker-compose:
-
-```sh
-docker compose up -d
-```
-
-Or build the image and run it manually:
-
-```sh
-docker build -t flow .
-docker run -p 3000:3000 --env-file apps/reader/.env.local flow
 ```
 
 ## Contributing
