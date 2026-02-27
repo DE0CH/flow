@@ -18,12 +18,14 @@ import {
   Env,
   Action,
   useAction,
+  useAuth,
   useBackground,
   useColorScheme,
   useMobile,
   useSetAction,
   useTranslation,
 } from '../hooks'
+import { signInWithGoogle, signOut } from '../firebase'
 import { reader, useReaderSnapshot } from '../models'
 import { navbarState } from '../state'
 import { activeClass } from '../styles'
@@ -59,6 +61,7 @@ export const Layout: React.FC = ({ children }) => {
         {ready && <SideBar />}
         {ready && <Reader>{children}</Reader>}
       </SplitView>
+      <AuthButton />
     </div>
   )
 }
@@ -215,6 +218,35 @@ function PageActionBar({ env }: EnvActionBarProps) {
           />
         ))}
     </ActionBar>
+  )
+}
+
+function AuthButton() {
+  const { user, loading } = useAuth()
+
+  if (loading) return null
+
+  return (
+    <div className="fixed bottom-16 left-4 z-20 sm:bottom-4">
+      {user ? (
+        <button
+          type="button"
+          onClick={() => signOut()}
+          className="rounded bg-surface-variant px-3 py-2 text-on-surface-variant typescale-body-small shadow hover:bg-surface-variant/80"
+          title={user.email ?? user.uid}
+        >
+          Sign out {user.email ? `(${user.email})` : ''}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => signInWithGoogle().catch(console.error)}
+          className="rounded bg-primary px-3 py-2 text-on-primary typescale-body-small shadow hover:bg-primary/90"
+        >
+          Sign in
+        </button>
+      )}
+      </div>
   )
 }
 

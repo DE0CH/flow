@@ -2,24 +2,33 @@ import { v4 as uuidv4 } from 'uuid'
 
 import ePub, { Book } from '@flow/epubjs'
 
-import { BookRecord, db } from './db'
+import { BookRecord } from './db'
+import {
+  getBooks,
+  getFile,
+  setBook,
+  updateBook,
+  uploadCover,
+  uploadFile,
+} from './firebase-books'
+import { getUid } from './firebase'
 import { mapExtToMimes } from './mime'
 import { unpack } from './sync'
 
-export async function fileToEpub(file: File) {
+export async function fileToEpub(file: File | Blob) {
   const data = await file.arrayBuffer()
   return ePub(data)
 }
 
 export async function handleFiles(files: Iterable<File>) {
-  const books = await db?.books.toArray()
-  const newBooks = []
+  const uid = getUid()
+  if (!uid) return []
+  const books = await getBooks(uid)
+  const newBooks: BookRecord[] = []
 
   for (const file of files) {
-    console.log(file)
-
     if (mapExtToMimes['.zip'].includes(file.type)) {
-      unpack(file)
+      await unpack(file)
       continue
     }
 
@@ -28,19 +37,20 @@ export async function handleFiles(files: Iterable<File>) {
       continue
     }
 
-    let book = books?.find((b) => b.name === file.name)
-
+    let book = books.find((b) => b.name === file.name)
     if (!book) {
       book = await addBook(file)
     }
-
-    newBooks.push(book)
+    if (book) newBooks.push(book)
   }
 
   return newBooks
 }
 
-export async function addBook(file: File) {
+export async function addBook(file: File): Promise<BookRecord> {
+  const uid = getUid()
+  if (!uid) throw new Error('Sign in to add books')
+
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
 
@@ -53,21 +63,38 @@ export async function addBook(file: File) {
     definitions: [],
     annotations: [],
   }
-  db?.books.add(book)
-  addFile(book.id, file, epub)
+
+  await setBook(uid, book)
+  await uploadFile(uid, book.id, file)
+
+  const coverUrl = await epub.coverUrl()
+  if (coverUrl) {
+    const res = await fetch(coverUrl)
+    const coverBlob = await res.blob()
+    const url = await uploadCover(uid, book.id, coverBlob)
+    await updateBook(uid, book.id, { coverUrl: url })
+    book.coverUrl = url
+  }
+
   return book
 }
 
-export async function addFile(id: string, file: File, epub?: Book) {
-  db?.files.add({ id, file })
-
-  if (!epub) {
-    epub = await fileToEpub(file)
+/** Upload file and cover for an existing book (e.g. restore from backup). */
+export async function addFile(
+  uid: string,
+  id: string,
+  file: File,
+  epub?: Book,
+): Promise<void> {
+  await uploadFile(uid, id, file)
+  const book = epub ?? (await fileToEpub(file))
+  const coverUrl = await book.coverUrl()
+  if (coverUrl) {
+    const res = await fetch(coverUrl)
+    const coverBlob = await res.blob()
+    const url = await uploadCover(uid, id, coverBlob)
+    await updateBook(uid, id, { coverUrl: url })
   }
-
-  const url = await epub.coverUrl()
-  const cover = url && (await toDataUrl(url))
-  db?.covers.add({ id, cover })
 }
 
 export function readBlob(fn: (reader: FileReader) => void) {
@@ -80,21 +107,24 @@ export function readBlob(fn: (reader: FileReader) => void) {
   })
 }
 
-async function toDataUrl(url: string) {
-  const res = await fetch(url)
-  const buffer = await res.blob()
-  return readBlob((r) => r.readAsDataURL(buffer))
+export async function getBookFile(bookId: string): Promise<Blob | null> {
+  const uid = getUid()
+  if (!uid) return null
+  return getFile(uid, bookId)
 }
 
-export async function fetchBook(url: string) {
-  const filename = decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '')
-  const books = await db?.books.toArray()
-  const book = books?.find((b) => b.name === filename)
+export async function fetchBook(url: string): Promise<BookRecord> {
+  const uid = getUid()
+  const filename =
+    decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '') || 'book.epub'
 
-  return (
-    book ??
-    fetch(url)
-      .then((res) => res.blob())
-      .then((blob) => addBook(new File([blob], filename)))
-  )
+  if (uid) {
+    const books = await getBooks(uid)
+    const existing = books.find((b) => b.name === filename)
+    if (existing) return existing
+  }
+
+  const res = await fetch(url)
+  const blob = await res.blob()
+  return addBook(new File([blob], filename))
 }

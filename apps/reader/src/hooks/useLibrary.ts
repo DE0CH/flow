@@ -1,7 +1,26 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect, useState } from 'react'
 
-import { db } from '../db'
+import { subscribeBooks } from '../firebase-books'
+import { useAuth } from './useAuth'
 
 export function useLibrary() {
-  return useLiveQuery(() => db?.books.toArray() ?? [])
+  const { user } = useAuth()
+  const [books, setBooks] = useState<import('../db').BookRecord[] | undefined>(
+    undefined,
+  )
+
+  useEffect(() => {
+    if (!user) {
+      setBooks([])
+      return
+    }
+    const unsub = subscribeBooks(user.uid, setBooks)
+    if (!unsub) {
+      setBooks([])
+      return
+    }
+    return () => unsub()
+  }, [user?.uid])
+
+  return books
 }

@@ -1,5 +1,6 @@
 export * from './remote'
 export * from './theme'
+export * from './useAuth'
 export * from './useAction'
 export * from './useAsync'
 export * from './useDisablePinchZooming'

@@ -4,39 +4,20 @@ import { useSnapshot } from 'valtio'
 import { Annotation } from '@flow/reader/annotation'
 import { BookRecord } from '@flow/reader/db'
 import { BookTab } from '@flow/reader/models'
-import { uploadData } from '@flow/reader/sync'
-
-import { useRemoteBooks } from './useRemote'
+import { updateBook } from '../../firebase-books'
+import { useAuth } from '../useAuth'
 
 export function useSync(tab: BookTab) {
-  const { mutate } = useRemoteBooks()
+  const { user } = useAuth()
   const { location, book } = useSnapshot(tab)
-
   const id = tab.book.id
 
   const sync = useCallback(
-    async (changes: Partial<BookRecord>) => {
-      // to remove effect dependency `remoteBooks`
-      mutate(
-        (remoteBooks) => {
-          if (remoteBooks) {
-            const i = remoteBooks.findIndex((b) => b.id === id)
-            if (i < 0) return remoteBooks
-
-            remoteBooks[i] = {
-              ...remoteBooks[i]!,
-              ...changes,
-            }
-
-            uploadData(remoteBooks)
-
-            return [...remoteBooks]
-          }
-        },
-        { revalidate: false },
-      )
+    (changes: Partial<BookRecord>) => {
+      if (!user) return
+      updateBook(user.uid, id, changes).catch(console.error)
     },
-    [id, mutate],
+    [user, id],
   )
 
   useEffect(() => {

@@ -17,10 +17,11 @@ import { useSnapshot } from 'valtio'
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 import { navbarState } from '@flow/reader/state'
 
-import { db } from '../db'
+import { getBook } from '../firebase-books'
 import { handleFiles } from '../file'
 import {
   hasSelection,
+  useAuth,
   useBackground,
   useColorScheme,
   useDisablePinchZooming,
@@ -84,6 +85,7 @@ interface ReaderGroupProps {
 }
 function ReaderGroup({ index }: ReaderGroupProps) {
   const group = reader.groups[index]!
+  const { user } = useAuth()
   const { focusedIndex } = useReaderSnapshot()
   const { tabs, selectedIndex } = useSnapshot(group)
   const t = useTranslation()
@@ -159,7 +161,7 @@ function ReaderGroup({ index }: ReaderGroupProps) {
               const id = text
               const tabParam =
                 Object.values(pages).find((p) => p.displayName === id) ??
-                (await db?.books.get(id))
+                (user ? await getBook(user.uid, id) : null)
               if (tabParam) tabs.push(tabParam)
             }
           }

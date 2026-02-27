@@ -9,8 +9,10 @@ import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
-import { BookRecord, db } from '../db'
-import { fileToEpub } from '../file'
+import { BookRecord } from '../db'
+import { fileToEpub, getBookFile } from '../file'
+import { updateBook as updateBookInFirestore } from '../firebase-books'
+import { getUid } from '../firebase'
 import { defaultStyle } from '../styles'
 
 import { dfs, find, INode } from './tree'
@@ -121,13 +123,15 @@ export class BookTab extends BaseTab {
   }
 
   updateBook(changes: Partial<BookRecord>) {
-    changes = {
+    const fullChanges = {
       ...changes,
       updatedAt: Date.now(),
     }
-    // don't wait promise resolve to make valtio batch updates
-    this.book = { ...this.book, ...changes }
-    db?.books.update(this.book.id, changes)
+    this.book = { ...this.book, ...fullChanges }
+    const uid = getUid()
+    if (uid) {
+      updateBookInFirestore(uid, this.book.id, fullChanges).catch(console.error)
+    }
   }
 
   annotationRange?: Range
@@ -332,10 +336,10 @@ export class BookTab extends BaseTab {
     if (el === this._el) return
     this._el = ref(el)
 
-    const file = await db?.files.get(this.book.id)
-    if (!file) return
+    const blob = await getBookFile(this.book.id)
+    if (!blob) return
 
-    this.epub = ref(await fileToEpub(file.file))
+    this.epub = ref(await fileToEpub(blob))
 
     this.epub.loaded.navigation.then((nav) => {
       this.nav = nav
