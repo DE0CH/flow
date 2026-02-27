@@ -99,7 +99,7 @@ export default function Index() {
 }
 
 const Library: React.FC = () => {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const books = useLibrary()
   const t = useTranslation('home')
 
@@ -115,6 +115,16 @@ const Library: React.FC = () => {
 
   if (groups.length) return null
   if (books === undefined) return null
+
+  if (authLoading) {
+    return (
+      <div className="scroll-parent flex flex-1 flex-col items-center justify-center p-4">
+        <p className="typescale-body-large animate-pulse text-on-surface-variant">
+          Loading…
+        </p>
+      </div>
+    )
+  }
 
   if (!user) {
     return (
