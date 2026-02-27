@@ -28,6 +28,27 @@ function omitUndefined<T extends Record<string, unknown>>(o: T): T {
   return out
 }
 
+/** Recursively remove undefined values so Firestore accepts the payload (it rejects undefined). */
+function deepOmitUndefined<T>(value: T): T {
+  if (value === undefined) {
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map(deepOmitUndefined) as T
+  }
+  if (value !== null && typeof value === 'object') {
+    const out = {} as Record<string, unknown>
+    for (const k of Object.keys(value as Record<string, unknown>)) {
+      const v = (value as Record<string, unknown>)[k]
+      if (v !== undefined) {
+        out[k] = deepOmitUndefined(v)
+      }
+    }
+    return out as T
+  }
+  return value
+}
+
 function bookDocRef(uid: string, bookId: string) {
   if (!firestore) return null
   return doc(firestore, 'users', uid, 'books', bookId)
@@ -58,10 +79,11 @@ export async function setBook(
 ): Promise<void> {
   const ref = bookDocRef(uid, book.id)
   if (!ref) throw new Error('Firestore not configured')
-  const data = omitUndefined({
+  const raw = omitUndefined({
     ...book,
     id: undefined,
-  } as Record<string, unknown>) as Record<string, unknown>
+  } as Record<string, unknown>)
+  const data = deepOmitUndefined(raw) as Record<string, unknown>
   await setDoc(ref, data, { merge: options?.merge ?? false })
 }
 
@@ -72,12 +94,13 @@ export async function updateBook(
 ): Promise<void> {
   const ref = bookDocRef(uid, bookId)
   if (!ref) throw new Error('Firestore not configured')
-  const data = omitUndefined({
+  const raw = omitUndefined({
     ...changes,
     updatedAt: Date.now(),
     id: undefined,
   } as Record<string, unknown>)
-  if (Object.keys(data).length === 0) return
+  if (Object.keys(raw).length === 0) return
+  const data = deepOmitUndefined(raw) as Record<string, unknown>
   await updateDoc(ref, data as UpdateData<Record<string, unknown>>)
 }
 

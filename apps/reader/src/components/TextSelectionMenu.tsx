@@ -152,9 +152,9 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
   return (
     <FocusLock disabled={mobile}>
       <Overlay
-        // cover `sash`
+        // cover `sash` — use onClick so menu content (e.g. color highlight) receives click before hide
         className="!z-50 !bg-transparent"
-        onMouseDown={hide}
+        onClick={hide}
       />
       <div
         ref={(el) => {
@@ -168,6 +168,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
         className={clsx(
           'bg-surface text-on-surface-variant shadow-1 absolute z-50 p-2 focus:outline-none',
         )}
+        onMouseDown={(e) => e.stopPropagation()}
         style={{
           left: layout(containerRect.width, width, {
             offset: anchorRect.left + viewRect.left - containerRect.left,
