@@ -1,6 +1,6 @@
 import { IS_SERVER } from '@literal-ui/hooks'
-import { atom, AtomEffect, useRecoilState } from 'recoil'
 import type { CSSProperties } from 'react'
+import { atom, AtomEffect, useRecoilState } from 'recoil'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 
